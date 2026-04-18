@@ -1,0 +1,24 @@
+{
+  "color": {
+    "brand": {
+      "primary": { "value": "#6C63FF", "comment": "主品牌色 — 智能紫" },
+      "accent":  { "value": "#00D4AA", "comment": "强调色 — 科技青绿" }
+    },
+    "background": {
+      "base":     { "value": "#0A0A0F", "comment": "最深底层背景" },
+      "surface":  { "value": "#12121A", "comment": "卡片/面板" },
+      "elevated": { "value": "#1A1A26", "comment": "悬浮层/弹窗" }
+    },
+    "text": {
+      "primary":   { "value": "#F0F0FF" },
+      "secondary": { "value": "#8888AA" },
+      "muted":     { "value": "#44445A" }
+    },
+    "status": {
+      "success": { "value": "#00C97A" },
+      "warning": { "value": "#FFB830" },
+      "error":   { "value": "#FF4D6A" },
+      "info":    { "value": "#4D9FFF" }
+    }
+  }
+}

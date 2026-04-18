@@ -1,0 +1,14 @@
+{
+  "spacing": {
+    "xs":  { "value": "4px" },
+    "sm":  { "value": "8px" },
+    "md":  { "value": "16px" },
+    "lg":  { "value": "24px" },
+    "xl":  { "value": "40px" }
+  },
+  "radius": {
+    "sm":  { "value": "8px",  "comment": "按钮/标签" },
+    "md":  { "value": "16px", "comment": "卡片/面板" },
+    "lg":  { "value": "24px", "comment": "弹窗/大容器" }
+  }
+}
