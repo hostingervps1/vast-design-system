@@ -13,6 +13,14 @@
 | 搜索增强 | SearXNG + haiku | 不确定的事实 → 先搜再答 |
 | 记忆读写 | haiku（看管） | 每轮对话自动触发，后台静默 |
 
+## 三端模型分配
+
+| 产品端 | 核心模型 | 说明 |
+|--------|----------|------|
+| **CLI** | claude-sonnet-4-6 | 推理+代码，VAST最强配置 |
+| **IDE** | GPT-4.1-mini + OpenHands | GPT驱动够用，OpenHands执行代码任务，成本低 |
+| **APP** | 按模块路由（见上表） | 画图/推理/百科各用专属模型 |
+
 ## 成本原则
 - VAST 最强模型上限 = claude-sonnet-4-6，不用 Opus
 - 画图专用 Google Imagen，不走 Claude
