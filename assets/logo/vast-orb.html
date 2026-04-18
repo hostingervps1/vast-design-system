@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0A0A0F;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'JetBrains Mono', monospace;
+    gap: 40px;
+  }
+
+  .demo-row {
+    display: flex;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .label {
+    color: #44445A;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 16px;
+    letter-spacing: 2px;
+  }
+
+  /* ── ORB 容器 ── */
+  .orb-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 核心球体 */
+  .orb-core {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%,
+      #9B8FFF 0%,
+      #6C63FF 40%,
+      #3D2DBF 80%,
+      #1A1230 100%
+    );
+    box-shadow:
+      0 0 20px rgba(108, 99, 255, 0.6),
+      0 0 40px rgba(108, 99, 255, 0.3),
+      0 0 80px rgba(108, 99, 255, 0.1);
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  /* 球体内部高光 */
+  .orb-core::after {
+    content: '';
+    position: absolute;
+    top: 8px; left: 10px;
+    width: 14px; height: 10px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 50%;
+    filter: blur(3px);
+  }
+
+  /* 轨道环 */
+  .orbit-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* 粒子轨道层 */
+  .orbit {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    top: 0; left: 0;
+  }
+
+  /* 单个粒子 */
+  .dot {
+    position: absolute;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0 0;
+  }
+
+  /* ── 空闲状态：慢速 ── */
+  .idle .orbit-1 { animation: spin 4s linear infinite; }
+  .idle .orbit-2 { animation: spin-rev 6s linear infinite; }
+  .idle .orbit-3 { animation: spin 9s linear infinite; }
+  .idle .orbit-4 { animation: spin-rev 5s linear infinite; }
+  .idle .orbit-5 { animation: spin 7s linear infinite; }
+
+  /* ── 思考状态：快速 ── */
+  .thinking .orbit-1 { animation: spin 0.8s linear infinite; }
+  .thinking .orbit-2 { animation: spin-rev 1.2s linear infinite; }
+  .thinking .orbit-3 { animation: spin 1.8s linear infinite; }
+  .thinking .orbit-4 { animation: spin-rev 1s linear infinite; }
+  .thinking .orbit-5 { animation: spin 1.4s linear infinite; }
+
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes spin-rev { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+
+  /* ── 进度条 ── */
+  .progress-wrap {
+    width: 120px;
+    margin-top: 20px;
+  }
+
+  .progress-bar {
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .thinking-active .progress-bar { display: block; }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #6C63FF, #00D4AA, #6C63FF);
+    background-size: 200% 100%;
+    animation: progress-move 2s ease-in-out infinite, shimmer 1.5s linear infinite;
+  }
+
+  @keyframes progress-move {
+    0%   { width: 0%; }
+    60%  { width: 85%; }
+    100% { width: 100%; }
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* 思考时球体脉冲 */
+  .thinking .orb-core {
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(108,99,255,0.6), 0 0 40px rgba(108,99,255,0.3); }
+    50%       { box-shadow: 0 0 30px rgba(108,99,255,0.9), 0 0 60px rgba(108,99,255,0.5), 0 0 100px rgba(0,212,170,0.2); }
+  }
+
+  /* 交互按钮 */
+  .btn {
+    padding: 8px 24px;
+    border-radius: 20px;
+    border: 1px solid rgba(108,99,255,0.4);
+    background: rgba(108,99,255,0.1);
+    color: #9B8FFF;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .btn:hover { background: rgba(108,99,255,0.2); border-color: rgba(108,99,255,0.7); }
+</style>
+</head>
+<body>
+
+<div class="demo-row">
+
+  <!-- 空闲状态 -->
+  <div>
+    <div class="orb-wrap idle" id="orb-idle">
+      <!-- 轨道环装饰 -->
+      <div class="orbit-ring" style="width:72px;height:72px;top:24px;left:24px;transform:rotate(15deg);"></div>
+      <div class="orbit-ring" style="width:90px;height:90px;top:15px;left:15px;transform:rotate(-20deg);"></div>
+      <div class="orbit-ring" style="width:108px;height:108px;top:6px;left:6px;transform:rotate(5deg);"></div>
+
+      <!-- 轨道1：红 点，r=34 -->
+      <div class="orbit orbit-1">
+        <div class="dot" style="width:6px;height:6px;background:#FF6B6B;box-shadow:0 0 8px #FF6B6B;margin:-3px 0 0 -3px;transform:translate(34px,0);"></div>
+        <div class="dot" style="width:4px;height:4px;background:#FF9999;box-shadow:0 0 6px #FF9999;margin:-2px 0 0 -2px;transform:translate(-20px,26px);"></div>
+      </div>
+
+      <!-- 轨道2：青 点，r=44 -->
+      <div class="orbit orbit-2" style="top:-2px;left:-2px;width:calc(100% + 4px);height:calc(100% + 4px)">
+        <div class="dot" style="width:5px;height:5px;background:#00D4AA;box-shadow:0 0 8px #00D4AA;margin:-2.5px 0 0 -2.5px;transform:translate(44px,0);"></div>
+        <div class="dot" style="width:3px;height:3px;background:#7FFFEE;box-shadow:0 0 5px #7FFFEE;margin:-1.5px 0 0 -1.5px;transform:translate(-30px,-32px);"></div>
+      </div>
+
+      <!-- 轨道3：黄 点，r=52 -->
+      <div class="orbit orbit-3" style="top:-6px;left:-6px;width:calc(100% + 12px);height:calc(100% + 12px)">
+        <div class="dot" style="width:5px;height:5px;background:#FFD93D;box-shadow:0 0 8px #FFD93D;margin:-2.5px 0 0 -2.5px;transform:translate(52px,0);"></div>
+      </div>
+
+      <!-- 轨道4：紫 点，r=40 -->
+      <div class="orbit orbit-4">
+        <div class="dot" style="width:4px;height:4px;background:#C77DFF;box-shadow:0 0 7px #C77DFF;margin:-2px 0 0 -2px;transform:translate(-40px,0);"></div>
+        <div class="dot" style="width:3px;height:3px;background:#E0AAFF;box-shadow:0 0 5px #E0AAFF;margin:-1.5px 0 0 -1.5px;transform:translate(25px,30px);"></div>
+      </div>
+
+      <!-- 轨道5：蓝 点，r=48 -->
+      <div class="orbit orbit-5" style="top:-4px;left:-4px;width:calc(100% + 8px);height:calc(100% + 8px)">
+        <div class="dot" style="width:5px;height:5px;background:#4D9FFF;box-shadow:0 0 8px #4D9FFF;margin:-2.5px 0 0 -2.5px;transform:translate(0,-48px);"></div>
+        <div class="dot" style="width:3px;height:3px;background:#A8D1FF;box-shadow:0 0 5px #A8D1FF;margin:-1.5px 0 0 -1.5px;transform:translate(35px,-33px);"></div>
+      </div>
+
+      <div class="orb-core"></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar"></div></div>
+    <div class="label">IDLE</div>
+  </div>
+
+  <!-- 思考状态 -->
+  <div>
+    <div class="orb-wrap thinking thinking-active" id="orb-think">
+      <div class="orbit-ring" style="width:72px;height:72px;top:24px;left:24px;transform:rotate(15deg);border-color:rgba(108,99,255,0.15)"></div>
+      <div class="orbit-ring" style="width:90px;height:90px;top:15px;left:15px;transform:rotate(-20deg);border-color:rgba(0,212,170,0.1)"></div>
+      <div class="orbit-ring" style="width:108px;height:108px;top:6px;left:6px;transform:rotate(5deg);border-color:rgba(108,99,255,0.08)"></div>
+
+      <div class="orbit orbit-1">
+        <div class="dot" style="width:6px;height:6px;background:#FF6B6B;box-shadow:0 0 10px #FF6B6B,0 0 20px #FF6B6B88;margin:-3px 0 0 -3px;transform:translate(34px,0);"></div>
+        <div class="dot" style="width:4px;height:4px;background:#FF9999;box-shadow:0 0 8px #FF9999;margin:-2px 0 0 -2px;transform:translate(-20px,26px);"></div>
+      </div>
+      <div class="orbit orbit-2" style="top:-2px;left:-2px;width:calc(100% + 4px);height:calc(100% + 4px)">
+        <div class="dot" style="width:5px;height:5px;background:#00D4AA;box-shadow:0 0 10px #00D4AA,0 0 20px #00D4AA88;margin:-2.5px 0 0 -2.5px;transform:translate(44px,0);"></div>
+        <div class="dot" style="width:3px;height:3px;background:#7FFFEE;box-shadow:0 0 6px #7FFFEE;margin:-1.5px 0 0 -1.5px;transform:translate(-30px,-32px);"></div>
+      </div>
+      <div class="orbit orbit-3" style="top:-6px;left:-6px;width:calc(100% + 12px);height:calc(100% + 12px)">
+        <div class="dot" style="width:5px;height:5px;background:#FFD93D;box-shadow:0 0 10px #FFD93D,0 0 20px #FFD93D88;margin:-2.5px 0 0 -2.5px;transform:translate(52px,0);"></div>
+      </div>
+      <div class="orbit orbit-4">
+        <div class="dot" style="width:4px;height:4px;background:#C77DFF;box-shadow:0 0 10px #C77DFF;margin:-2px 0 0 -2px;transform:translate(-40px,0);"></div>
+        <div class="dot" style="width:3px;height:3px;background:#E0AAFF;box-shadow:0 0 6px #E0AAFF;margin:-1.5px 0 0 -1.5px;transform:translate(25px,30px);"></div>
+      </div>
+      <div class="orbit orbit-5" style="top:-4px;left:-4px;width:calc(100% + 8px);height:calc(100% + 8px)">
+        <div class="dot" style="width:5px;height:5px;background:#4D9FFF;box-shadow:0 0 10px #4D9FFF,0 0 20px #4D9FFF88;margin:-2.5px 0 0 -2.5px;transform:translate(0,-48px);"></div>
+        <div class="dot" style="width:3px;height:3px;background:#A8D1FF;box-shadow:0 0 6px #A8D1FF;margin:-1.5px 0 0 -1.5px;transform:translate(35px,-33px);"></div>
+      </div>
+
+      <div class="orb-core"></div>
+    </div>
+    <div class="progress-wrap thinking-active">
+      <div class="progress-bar" style="display:block"><div class="progress-fill"></div></div>
+    </div>
+    <div class="label">THINKING</div>
+  </div>
+
+</div>
+
+<button class="btn" onclick="toggleState()">切换状态</button>
+
+<script>
+let thinking = false;
+function toggleState() {
+  thinking = !thinking;
+  const idle = document.getElementById('orb-idle');
+  const think = document.getElementById('orb-think');
+  if (thinking) {
+    idle.classList.remove('idle'); idle.classList.add('thinking');
+    idle.parentElement.querySelector('.progress-wrap').classList.add('thinking-active');
+    idle.parentElement.querySelector('.progress-bar').style.display = 'block';
+    idle.parentElement.querySelector('.progress-bar').innerHTML = '<div class="progress-fill"></div>';
+  } else {
+    idle.classList.remove('thinking'); idle.classList.add('idle');
+    idle.parentElement.querySelector('.progress-wrap').classList.remove('thinking-active');
+    idle.parentElement.querySelector('.progress-bar').style.display = 'none';
+  }
+}
+</script>
+
+</body>
+</html>
